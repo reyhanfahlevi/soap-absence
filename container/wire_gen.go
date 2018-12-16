@@ -7,6 +7,7 @@ package container
 
 import (
 	"github.com/google/wire"
+	"github.com/reyhanfahlevi/soap-absence/config"
 	absence2 "github.com/reyhanfahlevi/soap-absence/resource/absence"
 	"github.com/reyhanfahlevi/soap-absence/service/absence"
 	"github.com/tokopedia/affiliate/pkg/httpclient"
@@ -15,7 +16,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeService(address ...string) (*absence.Service, error) {
+func InitializeAbsenceService(address ...string) (*absence.Service, error) {
 	client := HttpClientProvider()
 	masterDB, err := MasterDBProvider()
 	if err != nil {
@@ -34,14 +35,19 @@ func InitializeService(address ...string) (*absence.Service, error) {
 
 var ResourceProvider = wire.NewSet(absence2.New, wire.Bind(new(absence.Resource), new(absence2.Resource)))
 
+// MasterDBProvider master db provider
 func MasterDBProvider() (safesql.MasterDB, error) {
-	return safesql.OpenMasterDB("mysql", "root:root@/attendance")
+	conf := config.Get()
+	return safesql.OpenMasterDB("mysql", conf.DB.Master)
 }
 
+// SlaveDBProvider slave db provider
 func SlaveDBProvider() (safesql.SlaveDB, error) {
-	return safesql.OpenSlaveDB("mysql", "root:root@/attendance")
+	conf := config.Get()
+	return safesql.OpenSlaveDB("mysql", conf.DB.Slave)
 }
 
+// HttpClientProvider http client provider
 func HttpClientProvider() *httpclient.Client {
 	return httpclient.NewClient()
 }

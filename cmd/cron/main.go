@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/reyhanfahlevi/soap-absence/config"
 	"github.com/reyhanfahlevi/soap-absence/container"
 )
@@ -19,7 +20,7 @@ func main() {
 		log.Fatal("Empty Device")
 	}
 
-	svc, err := container.InitializeService(conf.App.DeviceIPList[0])
+	svc, err := container.InitializeAbsenceService(conf.App.DeviceIPList[0])
 	if err != nil {
 		log.Fatal(err)
 	}

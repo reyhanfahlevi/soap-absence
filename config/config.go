@@ -12,7 +12,14 @@ import (
 
 // Config container
 type Config struct {
-	App AppSettings `yaml:"app"`
+	App AppSettings    `yaml:"app"`
+	DB  DatabaseConfig `yaml:"db"`
+}
+
+// DatabaseConfig db config
+type DatabaseConfig struct {
+	Master string `yaml:"master"`
+	Slave  string `yaml:"slave"`
 }
 
 // AppSettings General App Settings
