@@ -2,109 +2,103 @@ package absence
 
 import (
 	"context"
-	"encoding/xml"
-	"fmt"
-	"io/ioutil"
 
+	"github.com/pkg/errors"
 	"github.com/reyhanfahlevi/soap-absence/service/absence"
-	"github.com/tokopedia/affiliate/pkg/httpclient"
 	"github.com/tokopedia/affiliate/pkg/safesql"
 )
 
 // Resource struct
 type Resource struct {
-	client  *httpclient.Client
-	address []string
-	master  safesql.MasterDB
-	db      safesql.SlaveDB
+	master safesql.MasterDB
+	db     safesql.SlaveDB
 }
 
 // New resource
-func New(client *httpclient.Client, masterDB safesql.MasterDB, slaveDB safesql.SlaveDB, address ...string) *Resource {
+func New(masterDB safesql.MasterDB, slaveDB safesql.SlaveDB) *Resource {
 	return &Resource{
-		client:  client,
-		address: address,
-		db:      slaveDB,
-		master:  masterDB,
+		db:     slaveDB,
+		master: masterDB,
 	}
-}
-
-// GetAllUserInfo get all user info
-func (r *Resource) GetAllUserInfo(ctx context.Context) (absence.GetAllUserInfoResponse, error) {
-	var (
-		result absence.GetAllUserInfoResponse
-		body   = `<GetAllUserInfo><ArgComKey xsi:type=":xsd:integer">0</ArgComKey></GetAllUserInfo>`
-	)
-
-	headers := map[string][]string{
-		"Content-Type": {"text/xml"},
-	}
-
-	resp, err := r.client.Post(ctx, fmt.Sprintf("%s/iWsService", r.address[0]), headers, body)
-	if err != nil {
-		return result, err
-	}
-	defer resp.Body.Close()
-
-	// read response body
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, err
-	}
-
-	err = xml.Unmarshal(b, &result)
-	if err != nil {
-		return result, err
-	}
-
-	result.Total = len(result.Users)
-	return result, nil
-}
-
-// GetAttendanceLog get attendance log
-func (r *Resource) GetAttendanceLog(ctx context.Context, pin ...int) (absence.AttendanceLogResponse, error) {
-	var (
-		result absence.AttendanceLogResponse
-		body   = `<GetAttLog><ArgComKey xsi:type="xsd:integer">0</ArgComKey><Arg><PIN xsi:type="xsd:integer">%v</PIN></Arg></GetAttLog>`
-	)
-
-	if len(pin) > 0 {
-		body = fmt.Sprintf(body, pin[0])
-	} else {
-		body = fmt.Sprintf(body, "All")
-	}
-
-	headers := map[string][]string{
-		"Content-Type": {"text/xml"},
-	}
-
-	resp, err := r.client.Post(ctx, fmt.Sprintf("%s/iWsService", r.address[0]), headers, body)
-	if err != nil {
-		return result, err
-	}
-	defer resp.Body.Close()
-
-	// read response body
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, err
-	}
-
-	err = xml.Unmarshal(b, &result)
-	if err != nil {
-		return result, err
-	}
-	return result, nil
 }
 
 // SaveUserInfo save user into db
-func (r *Resource) SaveUserInfo(ctx context.Context, user absence.UserInfo) error {
+func (r *Resource) SaveUserInfo(ctx context.Context, user absence.ParamSaveUserInfo) error {
 	q := `INSERT INTO userinfo (
-		PIN,
-		PIN2,
-		Name
-	) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id=id`
+		pin,
+		pin2,
+		name,
+		email,
+		create_time,
+		update_time
+	) VALUES (?, ?, ?, ?, now(), now()) ON DUPLICATE KEY UPDATE id=id, update_time = now() `
 
-	_, err := r.master.ExecContext(ctx, q, user.PIN, user.PIN2, user.Name)
+	_, err := r.master.ExecContext(ctx, q, user.Pin1, user.Pin2, user.Name, user.Email)
 	return err
+}
+
+// SavDevice save absence device
+func (r *Resource) SaveDevice(ctx context.Context, param absence.ParamSaveDevice) error {
+	q := `INSERT INTO device_info 
+			(
+				address,
+				name,
+				detail,
+				create_time,
+				active
+			) 
+			VALUES (
+				?, ?, ?, now(), ?
+			) ON DUPLICATE KEY UPDATE name=?, detail=?, update_time = now(), active = ?`
+
+	_, err := r.master.ExecContext(ctx, q, param.Address, param.Name, param.Detail, param.Active, param.Name, param.Detail, param.Active)
+	return errors.Wrap(err, "failed exec")
+}
+
+// SaveAttendanceLog save attendance log
+func (r *Resource) SaveAttendanceLog(ctx context.Context, param absence.ParamSaveAttendance) error {
+	q := `INSERT INTO att_log
+			(
+				user_id,
+				tap_time,
+				status,
+				verified,
+				work_code,
+				device_address
+			) VALUES ( ?, ?, ?, ?, ?, ? ) ON DUPLICATE KEY UPDATE device_address = ? `
+
+	_, err := r.master.ExecContext(ctx, q, param.UserID, param.TapTime, param.Status, param.Verified, param.WorkCode, param.DeviceAddress, param.DeviceAddress)
+	return errors.Wrapf(err, "failed exec", q)
+}
+
+// GetUserInfoByPin2 get user info by soap pin2
+func (r *Resource) GetUserInfoByPin2(ctx context.Context, pin2 int) (absence.User, error) {
+	var (
+		user absence.User
+	)
+	q := `SELECT
+			id,
+			name,
+			email,
+			pin2
+		FROM
+			userinfo
+		WHERE
+			pin2 = ?
+			`
+
+	err := r.db.GetContext(ctx, &user, q, pin2)
+	return user, err
+}
+
+// GetAllMachineAddress get all registered device address
+func (r *Resource) GetAllMachineAddress(ctx context.Context) ([]string, error) {
+	var (
+		address []string
+	)
+
+	q := `SELECT address FROM device_info WHERE active = true`
+
+	err := r.db.SelectContext(ctx, &address, q)
+	return address, err
 }

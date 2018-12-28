@@ -6,12 +6,15 @@ import (
 	"github.com/google/wire"
 	"github.com/reyhanfahlevi/soap-absence/config"
 	absenceresource "github.com/reyhanfahlevi/soap-absence/resource/absence"
+	soapres "github.com/reyhanfahlevi/soap-absence/resource/soap"
 	absenceservice "github.com/reyhanfahlevi/soap-absence/service/absence"
+	soapsvc "github.com/reyhanfahlevi/soap-absence/service/soap"
 	"github.com/tokopedia/affiliate/pkg/httpclient"
 	"github.com/tokopedia/affiliate/pkg/safesql"
 )
 
-var ResourceProvider = wire.NewSet(absenceresource.New, wire.Bind(new(absenceservice.Resource), new(absenceresource.Resource)))
+var AbsenceResourceProvider = wire.NewSet(absenceresource.New, wire.Bind(new(absenceservice.Resource), new(absenceresource.Resource)))
+var SoapResourceProvider = wire.NewSet(soapres.New, wire.Bind(new(soapsvc.Resource), new(soapres.Resource)))
 
 // MasterDBProvider master db provider
 func MasterDBProvider() (safesql.MasterDB, error) {
@@ -31,7 +34,12 @@ func HttpClientProvider() *httpclient.Client {
 }
 
 // InitializeAbsenceService init absence service
-func InitializeAbsenceService(address ...string) (*absenceservice.Service, error) {
-	wire.Build(HttpClientProvider, MasterDBProvider, SlaveDBProvider, ResourceProvider, absenceservice.New)
+func InitializeAbsenceService() (*absenceservice.Service, error) {
+	wire.Build(MasterDBProvider, SlaveDBProvider, AbsenceResourceProvider, absenceservice.New)
 	return &absenceservice.Service{}, nil
+}
+
+func InitializeSoapService(address string) (*soapsvc.Service, error) {
+	wire.Build(HttpClientProvider, SoapResourceProvider, soapsvc.New)
+	return &soapsvc.Service{}, nil
 }

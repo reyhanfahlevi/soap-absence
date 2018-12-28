@@ -2,3 +2,4 @@ vendor/*
 .idea/*
 
 soap-absence-cron
+soap-absence-api

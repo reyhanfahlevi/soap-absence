@@ -12,8 +12,9 @@ import (
 
 // Config container
 type Config struct {
-	App AppSettings    `yaml:"app"`
-	DB  DatabaseConfig `yaml:"db"`
+	App       AppSettings    `yaml:"app"`
+	DB        DatabaseConfig `yaml:"db"`
+	Scheduler Scheduler      `yaml:"scheduler"`
 }
 
 // DatabaseConfig db config
@@ -24,7 +25,13 @@ type DatabaseConfig struct {
 
 // AppSettings General App Settings
 type AppSettings struct {
+	ApiPort      string   `yaml:"api_port"`
 	DeviceIPList []string `yaml:"device_ip_list"`
+}
+
+type Scheduler struct {
+	SyncUserData      string `yaml:"sync_user_data"`
+	PullAttendanceLog string `yaml:"pull_attendance_log"`
 }
 
 var (

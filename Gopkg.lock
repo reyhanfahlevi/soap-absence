@@ -22,6 +22,33 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:a9fe0f8ff72c388d0128e88ce5f3c27d37dcd0950acd7cdb8323555f12463396"
+  name = "github.com/go-chi/chi"
+  packages = [
+    ".",
+    "middleware",
+  ]
+  pruneopts = "UT"
+  revision = "b5294d10673813fac8558e7f47242bc9e61b4c25"
+  version = "v3.3.3"
+
+[[projects]]
+  digest = "1:54d7b4b9ab2bb2bae35b55eea900bc8fe15cba05a95fc78bf7fd7b82a9a07afa"
+  name = "github.com/go-chi/render"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3215478343fbc559bd3fc08f7031bb134d6bdad5"
+  version = "v1.0.1"
+
+[[projects]]
   digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
@@ -36,6 +63,22 @@
   pruneopts = "UT"
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:97d057c9a1eedf8202f5a54baeb67c9d446e493c241f62ba6f455acfe0b25d3e"
+  name = "github.com/google/wire"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "28f5930663cd2ab724e2735cc5713b490f207616"
+  version = "v0.2.0"
+
+[[projects]]
+  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
+  name = "github.com/iwanbk/cron"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+  version = "v1.1"
 
 [[projects]]
   digest = "1:6c41d4f998a03b6604227ccad36edaed6126c397e5d78709ef4814a1145a6757"
@@ -55,6 +98,22 @@
   pruneopts = "UT"
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
+
+[[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:75d51eeab0df85a3cea9e1297ccd3183b20a10cb4b48c753d8ec8d113cc14250"
@@ -109,12 +168,24 @@
   version = "v1.2.1"
 
 [[projects]]
+  digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require",
+  ]
+  pruneopts = "UT"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
+
+[[projects]]
   branch = "master"
-  digest = "1:718a68a06864cb951f39ecc89a53d6ac1b1bc68da1d2121420496cea0574d92e"
+  digest = "1:2cccf140e5c3d572aad7a9d9ff2845e80082f0c9c7c9eda9ea398b248f2fa840"
   name = "github.com/tokopedia/affiliate"
   packages = [
     "pkg/env",
     "pkg/httpclient",
+    "pkg/listener",
     "pkg/safesql",
   ]
   pruneopts = "UT"
@@ -128,13 +199,31 @@
   revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
   version = "v1.3.0"
 
+[[projects]]
+  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/go-chi/chi",
+    "github.com/go-chi/chi/middleware",
+    "github.com/go-chi/render",
     "github.com/go-sql-driver/mysql",
+    "github.com/google/wire",
+    "github.com/iwanbk/cron",
+    "github.com/pkg/errors",
+    "github.com/stretchr/testify/require",
+    "github.com/tokopedia/affiliate/pkg/env",
     "github.com/tokopedia/affiliate/pkg/httpclient",
+    "github.com/tokopedia/affiliate/pkg/listener",
     "github.com/tokopedia/affiliate/pkg/safesql",
+    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
