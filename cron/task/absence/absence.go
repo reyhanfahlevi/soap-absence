@@ -6,6 +6,7 @@ import (
 
 	"sync"
 
+	"github.com/reyhanfahlevi/soap-absence/container"
 	"github.com/reyhanfahlevi/soap-absence/cron"
 	"github.com/reyhanfahlevi/soap-absence/service/absence"
 )
@@ -115,4 +116,33 @@ func HandlerSyncDeviceUserInfo() {
 	syncUserMutex.Unlock()
 
 	log.Printf("-- Total Success: %v From %v Devices --", totalSuccess, totalDevice)
+}
+
+func HandlerSyncDevices() {
+	var (
+		countNewDevice = 0
+	)
+
+	ctx := context.Background()
+	devices, err := absenceSvc.GetAllMachineAddress(ctx)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	for _, d := range devices {
+		if _, ok := soapSvc[d]; ok {
+			continue
+		}
+
+		soapSvc[d], err = container.InitializeSoapService(d)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		countNewDevice++
+	}
+
+	log.Printf("-- Total New Device = %v, Device Total = %v", countNewDevice, len(soapSvc))
 }

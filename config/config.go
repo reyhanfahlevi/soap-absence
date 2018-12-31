@@ -29,6 +29,7 @@ type AppSettings struct {
 
 type Scheduler struct {
 	SyncUserData      string `yaml:"sync_user_data"`
+	SyncDevices       string `yaml:"sync_devices"`
 	PullAttendanceLog string `yaml:"pull_attendance_log"`
 }
 

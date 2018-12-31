@@ -1,9 +1,9 @@
 app:
   api_port: ":41794"
-  device_ip_list: ["http://10.164.6.10","http://10.164.6.13"]
 db:
   master: "root:root@/attendance"
   slave: "root:root@/attendance"
 scheduler:
-  sync_user_data: "0 0 * * * *"
-  pull_attendance_log: "1/15 * * * * *"
+  sync_user_data: "0 0 0 * * *"
+  pull_attendance_log: "0 * * * * *"
+  sync_devices: "0 1/5 * * * *"

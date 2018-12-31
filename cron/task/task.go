@@ -27,7 +27,8 @@ func (t *Task) Run() {
 func scheduler(schedule config.Scheduler) *cron.Cron {
 	c := cron.New()
 
-	register(c, schedule.SyncUserData, absence.HandlerSyncDeviceUserInfo, "syncronize user")
+	register(c, schedule.SyncUserData, absence.HandlerSyncDeviceUserInfo, "synchronize user")
+	register(c, schedule.SyncDevices, absence.HandlerSyncDevices, "synchronize devices")
 	register(c, schedule.PullAttendanceLog, absence.HandlerPullAttendanceLog, "pull attendance log")
 	return c
 }
