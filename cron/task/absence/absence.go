@@ -124,7 +124,7 @@ func HandlerSyncDevices() {
 	)
 
 	ctx := context.Background()
-	devices, err := absenceSvc.GetAllMachineAddress(ctx)
+	devices, err := absenceSvc.GetDevicesAddress(ctx)
 	if err != nil {
 		log.Println(err)
 		return

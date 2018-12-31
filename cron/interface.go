@@ -11,7 +11,7 @@ type AbsenceService interface {
 	SaveUserInfo(ctx context.Context, param absence.ParamSaveUserInfo) error
 	SaveAttendanceLog(ctx context.Context, param absence.ParamSaveAttendance) error
 	GetUserInfoByPin2(ctx context.Context, pin2 int) (absence.User, error)
-	GetAllMachineAddress(ctx context.Context) ([]string, error)
+	GetDevicesAddress(ctx context.Context) ([]string, error)
 }
 
 type SoapService interface {
