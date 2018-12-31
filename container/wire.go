@@ -4,28 +4,29 @@ package container
 
 import (
 	"github.com/google/wire"
+	"github.com/jmoiron/sqlx"
 	"github.com/reyhanfahlevi/soap-absence/config"
 	absenceresource "github.com/reyhanfahlevi/soap-absence/resource/absence"
 	soapres "github.com/reyhanfahlevi/soap-absence/resource/soap"
 	absenceservice "github.com/reyhanfahlevi/soap-absence/service/absence"
 	soapsvc "github.com/reyhanfahlevi/soap-absence/service/soap"
 	"github.com/tokopedia/affiliate/pkg/httpclient"
-	"github.com/tokopedia/affiliate/pkg/safesql"
+	"github.com/tokopedia/affiliate/pkg/log"
 )
 
 var AbsenceResourceProvider = wire.NewSet(absenceresource.New, wire.Bind(new(absenceservice.Resource), new(absenceresource.Resource)))
 var SoapResourceProvider = wire.NewSet(soapres.New, wire.Bind(new(soapsvc.Resource), new(soapres.Resource)))
 
-// MasterDBProvider master db provider
-func MasterDBProvider() (safesql.MasterDB, error) {
-	conf := config.Get()
-	return safesql.OpenMasterDB("mysql", conf.DB.Master)
-}
-
-// SlaveDBProvider slave db provider
-func SlaveDBProvider() (safesql.SlaveDB, error) {
-	conf := config.Get()
-	return safesql.OpenSlaveDB("mysql", conf.DB.Slave)
+// DBProvider db provider
+func DBProvider() (*sqlx.DB, error) {
+	log.Println("connecting db")
+	dsn := config.Get().DB.Master
+	db, err := sqlx.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("connection established")
+	return db, nil
 }
 
 // HttpClientProvider http client provider
@@ -35,7 +36,7 @@ func HttpClientProvider() *httpclient.Client {
 
 // InitializeAbsenceService init absence service
 func InitializeAbsenceService() (*absenceservice.Service, error) {
-	wire.Build(MasterDBProvider, SlaveDBProvider, AbsenceResourceProvider, absenceservice.New)
+	wire.Build(DBProvider, AbsenceResourceProvider, absenceservice.New)
 	return &absenceservice.Service{}, nil
 }
 

@@ -3,22 +3,22 @@ package absence
 import (
 	"context"
 
+	"time"
+
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/reyhanfahlevi/soap-absence/service/absence"
-	"github.com/tokopedia/affiliate/pkg/safesql"
 )
 
 // Resource struct
 type Resource struct {
-	master safesql.MasterDB
-	db     safesql.SlaveDB
+	db *sqlx.DB
 }
 
 // New resource
-func New(masterDB safesql.MasterDB, slaveDB safesql.SlaveDB) *Resource {
+func New(db *sqlx.DB) *Resource {
 	return &Resource{
-		db:     slaveDB,
-		master: masterDB,
+		db: db,
 	}
 }
 
@@ -33,7 +33,7 @@ func (r *Resource) SaveUserInfo(ctx context.Context, user absence.ParamSaveUserI
 		update_time
 	) VALUES (?, ?, ?, ?, now(), now()) ON DUPLICATE KEY UPDATE id=id, update_time = now() `
 
-	_, err := r.master.ExecContext(ctx, q, user.Pin1, user.Pin2, user.Name, user.Email)
+	_, err := r.db.ExecContext(ctx, q, user.Pin1, user.Pin2, user.Name, user.Email)
 	return err
 }
 
@@ -51,7 +51,7 @@ func (r *Resource) SaveDevice(ctx context.Context, param absence.ParamSaveDevice
 				?, ?, ?, now(), ?
 			) ON DUPLICATE KEY UPDATE name=?, detail=?, update_time = now(), active = ?`
 
-	_, err := r.master.ExecContext(ctx, q, param.Address, param.Name, param.Detail, param.Active, param.Name, param.Detail, param.Active)
+	_, err := r.db.ExecContext(ctx, q, param.Address, param.Name, param.Detail, param.Active, param.Name, param.Detail, param.Active)
 	return errors.Wrap(err, "failed exec")
 }
 
@@ -67,7 +67,7 @@ func (r *Resource) SaveAttendanceLog(ctx context.Context, param absence.ParamSav
 				device_address
 			) VALUES ( ?, ?, ?, ?, ?, ? ) ON DUPLICATE KEY UPDATE device_address = ? `
 
-	_, err := r.master.ExecContext(ctx, q, param.UserID, param.TapTime, param.Status, param.Verified, param.WorkCode, param.DeviceAddress, param.DeviceAddress)
+	_, err := r.db.ExecContext(ctx, q, param.UserID, param.TapTime, param.Status, param.Verified, param.WorkCode, param.DeviceAddress, param.DeviceAddress)
 	return errors.Wrapf(err, "failed exec", q)
 }
 
@@ -101,4 +101,65 @@ func (r *Resource) GetAllMachineAddress(ctx context.Context) ([]string, error) {
 
 	err := r.db.SelectContext(ctx, &address, q)
 	return address, err
+}
+
+func (r *Resource) GetAllUserAttendanceLog(ctx context.Context, minDate, maxDate time.Time) ([]absence.UserAttendanceResource, error) {
+	var (
+		dest []absence.UserAttendanceResource
+	)
+
+	q := `SELECT 
+		u.id as user_id,
+        u.name, 
+        u.email, 
+        a.tap_time 
+    FROM 
+        att_log a 
+    RIGHT JOIN 
+        userinfo u 
+    ON 
+        u.id = a.user_id 
+    WHERE
+        ((a.tap_time >= ? AND a.tap_time <= ?)
+	OR
+        a.tap_time IS NULL)`
+
+	minDateStr := minDate.Format("2006-01-02") + " 00:00:00"
+	maxDateStr := maxDate.Format("2006-01-02") + " 23:59:59"
+
+	err := r.db.SelectContext(ctx, &dest, q, minDateStr, maxDateStr)
+	return dest, err
+}
+
+func (r *Resource) GetUserAttendanceLogByID(ctx context.Context, userID int64, minDate, maxDate time.Time) ([]absence.UserAttendanceResource, error) {
+	var (
+		dest []absence.UserAttendanceResource
+	)
+	q := `SELECT 
+		u.id as user_id,
+        u.name, 
+        u.email, 
+        a.tap_time 
+    FROM 
+        att_log a 
+    RIGHT JOIN 
+        userinfo u 
+    ON 
+        u.id = a.user_id 
+    WHERE 
+        u.id = ?
+    AND
+        ((a.tap_time >= ? AND a.tap_time <= ?)
+	OR
+        a.tap_time IS NULL)`
+
+	minDateStr := minDate.Format("2006-01-02") + " 00:00:00"
+	maxDateStr := maxDate.Format("2006-01-02") + " 23:59:59"
+
+	err := r.db.SelectContext(ctx, &dest, q, userID, minDateStr, maxDateStr)
+	return dest, err
+}
+
+func (r *Resource) GetUserAttendanceLogByEmail(ctx context.Context, userID int64) {
+
 }

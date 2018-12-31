@@ -4,12 +4,19 @@ import (
 	"context"
 	"log"
 
+	"sync"
+
 	"github.com/reyhanfahlevi/soap-absence/cron"
 	"github.com/reyhanfahlevi/soap-absence/service/absence"
 )
 
 var soapSvc map[string]cron.SoapService
 var absenceSvc cron.AbsenceService
+
+var (
+	syncUserMutex     sync.Mutex
+	syncPullAttMutext sync.Mutex
+)
 
 // Init will initialize
 func Init(soap map[string]cron.SoapService, absence cron.AbsenceService) {
@@ -22,6 +29,8 @@ func HandlerPullAttendanceLog() {
 		totalDevice = 0
 	)
 	ctx := context.Background()
+
+	syncPullAttMutext.Lock()
 
 	for _, v := range soapSvc {
 		att, err := v.GetAttendanceLog(ctx)
@@ -58,6 +67,8 @@ func HandlerPullAttendanceLog() {
 		totalDevice++
 	}
 
+	syncPullAttMutext.Unlock()
+
 	log.Printf("-- Total %v Devices --", totalDevice)
 }
 
@@ -67,6 +78,10 @@ func HandlerSyncDeviceUserInfo() {
 		totalSuccess = 0
 	)
 	ctx := context.Background()
+
+	syncUserMutex.Lock()
+
+	log.Println("syncronizing user")
 
 	for _, v := range soapSvc {
 		users, err := v.GetAllUserInfo(ctx)
@@ -96,6 +111,8 @@ func HandlerSyncDeviceUserInfo() {
 		totalDevice++
 
 	}
+
+	syncUserMutex.Unlock()
 
 	log.Printf("-- Total Success: %v From %v Devices --", totalSuccess, totalDevice)
 }

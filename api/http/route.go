@@ -24,5 +24,8 @@ func handler() http.Handler {
 		r.Post("/save", absence.HandlerAddNewDevice)
 	})
 
+	r.Get("/attendance/get", absence.HandlerGetUserAttendance)
+	r.Get("/attendance/all", absence.HandlerGetAllUserAttendance)
+
 	return r
 }

@@ -22,7 +22,7 @@ update:
 	@dep ensure -v
 
 run-api: build-api
-	@echo "${NOW} == RUNNING CRON..."
+	@echo "${NOW} == RUNNING API..."
 	@./soap-absence-api
 
 run-cron: build-cron

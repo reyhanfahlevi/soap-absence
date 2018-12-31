@@ -7,27 +7,24 @@ package container
 
 import (
 	"github.com/google/wire"
+	"github.com/jmoiron/sqlx"
 	"github.com/reyhanfahlevi/soap-absence/config"
 	absence2 "github.com/reyhanfahlevi/soap-absence/resource/absence"
 	soap2 "github.com/reyhanfahlevi/soap-absence/resource/soap"
 	"github.com/reyhanfahlevi/soap-absence/service/absence"
 	"github.com/reyhanfahlevi/soap-absence/service/soap"
 	"github.com/tokopedia/affiliate/pkg/httpclient"
-	"github.com/tokopedia/affiliate/pkg/safesql"
+	"github.com/tokopedia/affiliate/pkg/log"
 )
 
 // Injectors from wire.go:
 
 func InitializeAbsenceService() (*absence.Service, error) {
-	masterDB, err := MasterDBProvider()
+	db, err := DBProvider()
 	if err != nil {
 		return nil, err
 	}
-	slaveDB, err := SlaveDBProvider()
-	if err != nil {
-		return nil, err
-	}
-	resource := absence2.New(masterDB, slaveDB)
+	resource := absence2.New(db)
 	service := absence.New(resource)
 	return service, nil
 }
@@ -45,16 +42,16 @@ var AbsenceResourceProvider = wire.NewSet(absence2.New, wire.Bind(new(absence.Re
 
 var SoapResourceProvider = wire.NewSet(soap2.New, wire.Bind(new(soap.Resource), new(soap2.Resource)))
 
-// MasterDBProvider master db provider
-func MasterDBProvider() (safesql.MasterDB, error) {
-	conf := config.Get()
-	return safesql.OpenMasterDB("mysql", conf.DB.Master)
-}
-
-// SlaveDBProvider slave db provider
-func SlaveDBProvider() (safesql.SlaveDB, error) {
-	conf := config.Get()
-	return safesql.OpenSlaveDB("mysql", conf.DB.Slave)
+// DBProvider db provider
+func DBProvider() (*sqlx.DB, error) {
+	log.Println("connecting db")
+	dsn := config.Get().DB.Master
+	db, err := sqlx.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("connection established")
+	return db, nil
 }
 
 // HttpClientProvider http client provider

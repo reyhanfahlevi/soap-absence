@@ -20,11 +20,6 @@ func Main() error {
 		return err
 	}
 
-	conf := config.Get()
-	if len(conf.App.DeviceIPList) == 0 {
-		log.Fatal("Empty Device")
-	}
-
 	absenSvc, err := container.InitializeAbsenceService()
 	if err != nil {
 		return err

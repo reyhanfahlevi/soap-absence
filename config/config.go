@@ -20,13 +20,11 @@ type Config struct {
 // DatabaseConfig db config
 type DatabaseConfig struct {
 	Master string `yaml:"master"`
-	Slave  string `yaml:"slave"`
 }
 
 // AppSettings General App Settings
 type AppSettings struct {
-	ApiPort      string   `yaml:"api_port"`
-	DeviceIPList []string `yaml:"device_ip_list"`
+	ApiPort string `yaml:"api_port"`
 }
 
 type Scheduler struct {

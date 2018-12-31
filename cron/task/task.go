@@ -1,6 +1,8 @@
 package task
 
 import (
+	"log"
+
 	"github.com/iwanbk/cron"
 	"github.com/reyhanfahlevi/soap-absence/config"
 	crontask "github.com/reyhanfahlevi/soap-absence/cron"
@@ -14,18 +16,25 @@ type Task struct {
 }
 
 func (t *Task) Run() {
-	scheduler := config.Get().Scheduler
+	schedule := config.Get().Scheduler
 
 	absence.Init(t.SoapSVCs, t.AbsenceSVC)
 
-	t.cron = register(scheduler)
+	t.cron = scheduler(schedule)
 	t.cron.Start()
 }
 
-func register(schedule config.Scheduler) *cron.Cron {
+func scheduler(schedule config.Scheduler) *cron.Cron {
 	c := cron.New()
 
-	c.AddFunc(schedule.SyncUserData, absence.HandlerSyncDeviceUserInfo)
-	c.AddFunc(schedule.PullAttendanceLog, absence.HandlerPullAttendanceLog)
+	register(c, schedule.SyncUserData, absence.HandlerSyncDeviceUserInfo, "syncronize user")
+	register(c, schedule.PullAttendanceLog, absence.HandlerPullAttendanceLog, "pull attendance log")
 	return c
+}
+
+func register(c *cron.Cron, schedule string, cmd func(), name ...string) {
+	if len(name) > 0 {
+		log.Printf("registering %v cron fro %v", name[0], schedule)
+	}
+	c.AddFunc(schedule, cmd)
 }

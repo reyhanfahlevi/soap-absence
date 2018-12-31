@@ -1,8 +1,7 @@
 package server
 
 import (
-	"log"
-
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/reyhanfahlevi/soap-absence/api/http"
 	"github.com/reyhanfahlevi/soap-absence/config"
 	"github.com/reyhanfahlevi/soap-absence/container"
@@ -12,11 +11,6 @@ func Main() error {
 	err := config.Init()
 	if err != nil {
 		return err
-	}
-
-	conf := config.Get()
-	if len(conf.App.DeviceIPList) == 0 {
-		log.Fatal("Empty Device")
 	}
 
 	absenSvc, err := container.InitializeAbsenceService()
